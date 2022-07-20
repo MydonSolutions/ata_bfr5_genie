@@ -13,11 +13,11 @@ function calculateEpochfromJD(jd::Real)::Real
 end
 
 function calculateMJDfromJD(jd::Real)::Real
-	jd + 2400000.5
+	jd - 2400000.5
 end
 
 function calculateJDfromMJD(mjd::Real)::Real
-	mjd - 2400000.5
+	mjd + 2400000.5
 end
 
 function calculateMJDfromEpoch(unix_epoch_seconds::Real)::Real
@@ -57,11 +57,10 @@ function calculateBeamDelays(
 	boresight_ra::Real, boresight_dec::Real,
 	beams_radec::AbstractArray{<:Real, 2},
 	longitude_rad::Real, latitude_rad::Real, altitude::Real,
-	timemjd::Real, dut1::Real
+	time_unix::Real, dut1::Real
 )
-	println(unix2datetime(calculateEpochfromJD(calculateJDfromMJD(timemjd))))
 	astrom, eo = apco13(
-		timemjd, 0,
+		calculateMJDfromEpoch(time_unix), 0,
 		dut1,
 		longitude_rad, latitude_rad, altitude,
 		0, 0,

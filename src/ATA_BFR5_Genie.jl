@@ -55,16 +55,16 @@ function collectBfr5(guppiraw_filepath::String, antweights_filepath::String, tel
 		delayinfo.time_array = []
 		delayinfo.dut1 = header["DUT1"]
 		
-		push!(delayinfo.time_array, calculateMJDfromEpoch(calculateEpochGuppiHeader(header, 0.5)))
+		push!(delayinfo.time_array, calculateEpochGuppiHeader(header, 0.5))
 		
 		while read!(fio, header)
-			push!(delayinfo.time_array, calculateMJDfromEpoch(calculateEpochGuppiHeader(header, 0.5)))
+			push!(delayinfo.time_array, calculateEpochGuppiHeader(header, 0.5))
 		end
+		delayinfo.jds = map(calculateJDfromEpoch, delayinfo.time_array)
 		
 		ntimes = length(delayinfo.time_array)
 		delayinfo.delays = zeros(Float64, (diminfo.nants, diminfo.nbeams, ntimes))
 		delayinfo.rates = zeros(Float64, (diminfo.nants, diminfo.nbeams, ntimes))
-		delayinfo.jds = zeros(Float64, (ntimes))
 	close(fio)
 
 	fio = open(antweights_filepath, "r")
