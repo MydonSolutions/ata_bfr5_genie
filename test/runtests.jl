@@ -5,7 +5,7 @@ using Test
 	include("./generate_antenna_weights.jl")
 	include("./generate_guppiraw.jl")
 
-	recipe = collectBfr5("header.0000.raw", "ant_weights.bin", "ata_telinfo.toml")
+	recipe = collectBfr5("header.0000.raw", "ant_weights.bin", "ata_telinfo.toml", headerentry_limit=28)
 	@test true
 end
 

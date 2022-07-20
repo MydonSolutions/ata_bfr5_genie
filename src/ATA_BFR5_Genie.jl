@@ -41,10 +41,15 @@ end
 include("collections.jl")
 include("calculations.jl")
 
-function collectBfr5(guppiraw_filepath::String, antweights_filepath::String, telinfo_filepath::String)::BeamformerRecipe
+function collectBfr5(
+	guppiraw_filepath::String,
+	antweights_filepath::String,
+	telinfo_filepath::String;
+	headerentry_limit::Integer=256
+)::BeamformerRecipe
 
 	fio = open(guppiraw_filepath, "r")
-		header = GuppiRaw.Header(28)
+		header = GuppiRaw.Header(headerentry_limit)
 		@assert read!(fio, header)
 
 		diminfo, beaminfo, obsinfo = collectDimBeamObsInfo(header)
