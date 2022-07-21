@@ -45,12 +45,13 @@ function collectBfr5(
 	guppiraw_filepath::String,
 	antweights_filepath::String,
 	telinfo_filepath::String;
-	headerentry_limit::Integer=256
+	headerentry_limit::Integer=256,
+	headers_only::Bool=false
 )::BeamformerRecipe
 
 	fio = open(guppiraw_filepath, "r")
 		header = GuppiRaw.Header(headerentry_limit)
-		@assert read!(fio, header)
+		@assert read!(fio, header, skip_padding=!headers_only)
 
 		diminfo, beaminfo, obsinfo = collectDimBeamObsInfo(header)
 		obs_antnames = collectObsAntnames(header)
@@ -62,7 +63,18 @@ function collectBfr5(
 		
 		push!(delayinfo.time_array, calculateEpochGuppiHeader(header, 0.5))
 		
-		while read!(fio, header)
+		while true 
+			if !headers_only
+				skip(fio, header["BLOCSIZE"])
+			end
+			try
+				if ! read!(fio, header, skip_padding=!headers_only)
+					break
+				end
+			catch err
+				println("`read!(..., skip_padding=", skip_padding, ")` error caught at block ", length(delayinfo.time_array), ": ", err)
+				break
+			end
 			push!(delayinfo.time_array, calculateEpochGuppiHeader(header, 0.5))
 		end
 		delayinfo.jds = map(calculateJDfromEpoch, delayinfo.time_array)
