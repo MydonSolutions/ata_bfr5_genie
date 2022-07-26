@@ -43,11 +43,17 @@ function collectDimBeamObsInfo(header::GuppiRaw.Header)
 	# infer number of beams
 	beaminfo = BeamInfo()
 	nbeams = 0
-	while @sprintf("RA_OFF%d",nbeams) in keys(header)
-		push!(beaminfo.src_names, @sprintf("BEAM_%d", nbeams))
-		push!(beaminfo.ras, header[@sprintf("RA_OFF%d", nbeams)])
-		push!(beaminfo.decs, header[@sprintf("DEC_OFF%d", nbeams)])
+	while @sprintf("RA_OFF%01d",nbeams) in keys(header)
+		push!(beaminfo.src_names, @sprintf("BEAM_%01d", nbeams))
+		push!(beaminfo.ras, header[@sprintf("RA_OFF%01d", nbeams)])
+		push!(beaminfo.decs, header[@sprintf("DEC_OFF%01d", nbeams)])
 		nbeams += 1
+	end
+	if nbeams == 0 
+		push!(beaminfo.src_names, "BEAM_BORESIGHT")
+		push!(beaminfo.ras, header["RA_STR"])
+		push!(beaminfo.decs, header["DEC_STR"])
+		nbeams = 1
 	end
 
 	diminfo = DimInfo()
