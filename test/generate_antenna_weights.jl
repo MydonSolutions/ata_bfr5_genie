@@ -48,10 +48,7 @@ NANTS = length(antenna_names)
 NCHAN = 2048
 NPOL = 2
 
-weights = Array{ComplexF64}(undef, NPOL, NCHAN, NANTS)
-for i in 1:NANTS
-    weights[:, :, i] .= i
-end
+weights = ones(ComplexF64, (NPOL, NCHAN, NANTS))
 
 open("ant_weights.bin", "w") do fio
     write(fio,
