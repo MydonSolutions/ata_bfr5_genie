@@ -55,7 +55,7 @@ function collectBfr5(
 
 		diminfo, beaminfo, obsinfo = collectDimBeamObsInfo(header)
 		obs_antnames = collectObsAntnames(header)
-		obs_chanrange = header["SCHAN"]:(header["SCHAN"] + diminfo.nchan)
+		obs_chanrange = (header["SCHAN"]+1):(header["SCHAN"] + diminfo.nchan)
 
 		delayinfo = DelayInfo()
 		delayinfo.time_array = []
