@@ -60,7 +60,7 @@ function calculateBeamDelays(
 	time_unix::Real, dut1::Real
 )
 	astrom, eo = apco13(
-		calculateMJDfromEpoch(time_unix), 0,
+		calculateJDfromEpoch(time_unix), 0,
 		dut1,
 		longitude_rad, latitude_rad, altitude,
 		0, 0,
