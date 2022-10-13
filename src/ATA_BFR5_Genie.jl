@@ -110,7 +110,7 @@ function collectBfr5(
 			transpose(hcat(beaminfo.ras, beaminfo.decs)),
 			telinfo.longitude, telinfo.latitude, telinfo.altitude,
 			midblock_time_unix, delayinfo.dut1
-		)
+		) .* 1e-9
 	end
 
 	return BeamformerRecipe(
