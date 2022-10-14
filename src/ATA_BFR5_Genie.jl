@@ -55,7 +55,6 @@ function collectBfr5(
 
 		diminfo, beaminfo, obsinfo = collectDimBeamObsInfo(header)
 		obs_antnames = collectObsAntnames(header)
-		obs_chanrange = 1:(header["SCHAN"] + diminfo.nchan)
 
 		delayinfo = DelayInfo()
 		delayinfo.time_array = []
@@ -85,7 +84,7 @@ function collectBfr5(
 	close(fio)
 
 	fio = open(antweights_filepath, "r")
-		antcal_weights = collectAntennaWeights(fio, obs_antnames, obs_chanrange)
+		antcal_weights = collectAntennaWeights(fio, obs_antnames, :)
 		# display(antcal_weights):println()
 	close(fio)
 

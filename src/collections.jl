@@ -3,7 +3,7 @@
 function collectAntennaWeights(
 	io::IO,
 	ant_name_filter::Array{String, 1},
-	channel_range::UnitRange
+	channel_range::Union{UnitRange, Colon}
 )::Array{ComplexF64, 3}
 	antweights = AntennaWeights(io)
 	ant_indices = [findfirst(x -> x == name, antweights.names) for name in ant_name_filter]
