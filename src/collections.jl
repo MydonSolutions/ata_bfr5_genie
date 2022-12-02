@@ -45,14 +45,14 @@ function collectDimBeamObsInfo(header::GuppiRaw.Header)
 	nbeams = 0
 	while @sprintf("RA_OFF%01d",nbeams) in keys(header)
 		push!(beaminfo.src_names, @sprintf("BEAM_%01d", nbeams))
-		push!(beaminfo.ras, header[@sprintf("RA_OFF%01d", nbeams)] * 360.0 / 24.0) # convert hours to degrees
-		push!(beaminfo.decs, header[@sprintf("DEC_OFF%01d", nbeams)])
+		push!(beaminfo.ras, (pi/180.0) * header[@sprintf("RA_OFF%01d", nbeams)] * 360.0 / 24.0) # convert hours to degrees
+		push!(beaminfo.decs, (pi/180.0) * header[@sprintf("DEC_OFF%01d", nbeams)])
 		nbeams += 1
 	end
 	if nbeams == 0 
 		push!(beaminfo.src_names, "BEAM_BORESIGHT")
-		push!(beaminfo.ras, header["RA_STR"] * 360.0 / 24.0) # convert hours to degrees
-		push!(beaminfo.decs, header["DEC_STR"])
+		push!(beaminfo.ras, (pi/180.0) * header["RA_STR"] * 360.0 / 24.0) # convert hours to degrees
+		push!(beaminfo.decs, (pi/180.0) * header["DEC_STR"])
 		nbeams = 1
 	end
 
@@ -60,12 +60,13 @@ function collectDimBeamObsInfo(header::GuppiRaw.Header)
 	diminfo.npol, diminfo.ntimes, diminfo.nchan, diminfo.nants = size(header)
 	diminfo.nbeams = nbeams
 
-	
 	obsinfo = ObsInfo()
 	obsinfo.obsid = header["SRC_NAME"]
 	obsinfo.freq_array = [(header["SCHAN"] + 0.5 + chan)*header["CHAN_BW"] for chan in 0:diminfo.nchan-1]
 	obsinfo.phase_center_ra = header["RA_STR"] * 360.0 / 24.0 # convert hours to degrees
 	obsinfo.phase_center_dec = header["DEC_STR"]
+	obsinfo.phase_center_ra *= pi/180.0
+	obsinfo.phase_center_dec *= pi/180.0
 	obsinfo.instrument_name = get(header, "TELESCOP", "Unknown")
 
 	return diminfo, beaminfo, obsinfo
