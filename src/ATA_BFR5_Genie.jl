@@ -43,10 +43,11 @@ include("calculations.jl")
 
 function collectBfr5(
 	guppiraw_filepath::String,
-	antweights_filepath::String,
 	telinfo_filepath::String;
 	headerentry_limit::Integer=256,
-	headers_only::Bool=false
+	headers_only::Bool=false,
+	antweights_filepath::Union{String, Nothing}=nothing,
+	beam_coords::Union{Vector{String}, Nothing}=nothing # RAh,DECdeg strings
 )::BeamformerRecipe
 
 	fio = open(guppiraw_filepath, "r")
@@ -54,6 +55,16 @@ function collectBfr5(
 		@assert read!(fio, header, skip_padding=!headers_only)
 
 		diminfo, beaminfo, obsinfo = collectDimBeamObsInfo(header)
+		if !isnothing(beam_coords)
+			beams = hcat(collect(
+				parse.(Float64, split(beam, ","))
+				for (i, beam) in enumerate(beam_coords)
+			)...)
+			diminfo.nbeams = size(beams)[2]
+			beaminfo.ras = beams[1, :] .* ((360.0 / 24.0) * (pi/180.0))
+			beaminfo.decs = beams[2, :] .* (pi/180.0)
+			beaminfo.src_names = collect(@sprintf("BEAM_%01d", i) for i in 0:diminfo.nbeams-1)
+		end
 		obs_antnames = collectObsAntnames(header)
 
 		delayinfo = DelayInfo()
@@ -83,10 +94,14 @@ function collectBfr5(
 		delayinfo.rates = zeros(Float64, (diminfo.nants, diminfo.nbeams, ntimes))
 	close(fio)
 
-	fio = open(antweights_filepath, "r")
-		antcal_weights = collectAntennaWeights(fio, obs_antnames, :)
-		# display(antcal_weights):println()
-	close(fio)
+	if isnothing(antweights_filepath)
+		antcal_weights = ones(ComplexF64, (diminfo.nants, diminfo.npol, diminfo.nchan))
+	else
+		fio = open(antweights_filepath, "r")
+			antcal_weights = collectAntennaWeights(fio, obs_antnames, :)
+			# display(antcal_weights):println()
+		close(fio)
+	end
 
 	calinfo = CalInfo()
 	calinfo.refant = obs_antnames[1]
