@@ -10,7 +10,48 @@ using Geodesy: ECEFfromLLA, wgs84_ellipsoid, LLA
 using Dates: unix2datetime
 using TOML
 
-export collectBfr5
+export bfr5Collect, main_bfr5Gen
+
+using ArgParse
+function main_bfr5Gen()::Cint
+  s = ArgParseSettings()
+  @add_arg_table s begin
+    "rawpath"
+      help = "path to the RAW file"
+      required = true
+    "telinfopath"
+      help = "path to the telescope information TOML file"
+      required = true
+    "outputpath"
+      help = "path of the output BFR5 file"
+      default = "./output.bfr5"
+      required = false
+    "--antweightpath"
+      help = "path to the antenna-weights file, otherwise all coefficients are 1+0j"
+      default = nothing
+      required = false
+    "--beam"
+      help = "beam coordinate as 'RA,DEC' (hours,degrees), repeatable"
+      arg_type = String
+      required = false
+      action = :append_arg
+      default = nothing
+  end
+
+  args = parse_args(s)
+
+  recipe = bfr5Collect(
+    args["rawpath"],
+    args["telinfopath"];
+    antweights_filepath = args["antweightpath"],
+    beam_coords = args["beam"]
+  )
+
+  to_hdf5(args["outputpath"], recipe)
+  println(args["outputpath"])
+
+  return 0
+end
 
 struct AntennaWeights
 	nants::Int32
@@ -41,7 +82,7 @@ end
 include("collections.jl")
 include("calculations.jl")
 
-function collectBfr5(
+function bfr5Collect(
 	guppiraw_filepath::String,
 	telinfo_filepath::String;
 	headerentry_limit::Integer=256,
@@ -55,7 +96,7 @@ function collectBfr5(
 		@assert read!(fio, header, skip_padding=!headers_only)
 
 		diminfo, beaminfo, obsinfo = collectDimBeamObsInfo(header)
-		if !isnothing(beam_coords)
+		if !isnothing(beam_coords) && length(beam_coords) > 0
 			beams = hcat(collect(
 				parse.(Float64, split(beam, ","))
 				for (i, beam) in enumerate(beam_coords)
