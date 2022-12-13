@@ -106,6 +106,7 @@ function bfr5Collect(
 		@assert read!(fio, header, skip_padding=headers_only)
 
 		diminfo, beaminfo, obsinfo = collectDimBeamObsInfo(header)
+		schan = header["SCHAN"]
 		if !isnothing(beam_coords) && length(beam_coords) > 0
 			beams = hcat(collect(
 				parse.(Float64, split(beam, ","))
@@ -162,7 +163,7 @@ function bfr5Collect(
 	close(fio)
 
 	if isnothing(antweights_filepath)
-		antcal_weights = ones(ComplexF64, (diminfo.nants, diminfo.npol, diminfo.nchan))
+		antcal_weights = ones(ComplexF64, (diminfo.nants, diminfo.npol, schan+diminfo.nchan))
 	else
 		fio = open(antweights_filepath, "r")
 			antcal_weights = collectAntennaWeights(fio, obs_antnames, :)
