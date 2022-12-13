@@ -36,6 +36,11 @@ function main_bfr5Gen()::Cint
       required = false
       action = :append_arg
       default = nothing
+    "--phase-center"
+      help = "phase-center coordinate as 'RA,DEC' (hours,degrees)"
+      arg_type = String
+      required = false
+      default = nothing
   end
 
   args = parse_args(s)
@@ -44,7 +49,8 @@ function main_bfr5Gen()::Cint
     args["rawpath"],
     args["telinfopath"];
     antweights_filepath = args["antweightpath"],
-    beam_coords = args["beam"]
+    beam_coords = args["beam"],
+    phase_center = args["phase-center"],
   )
 
   to_hdf5(args["outputpath"], recipe)
@@ -88,7 +94,8 @@ function bfr5Collect(
 	headerentry_limit::Integer=256,
 	headers_only::Bool=true,
 	antweights_filepath::Union{String, Nothing}=nothing,
-	beam_coords::Union{Vector{String}, Nothing}=nothing # RAh,DECdeg strings
+	beam_coords::Union{Vector{String}, Nothing}=nothing, # RAh,DECdeg strings
+	phase_center::Union{String, Nothing}=nothing # RAh,DECdeg string
 )::BeamformerRecipe
 
 	guppiraw_stem_match = match(r"(.*)\.(\d{4})\.raw", guppiraw_filepath)
@@ -108,6 +115,11 @@ function bfr5Collect(
 			beaminfo.ras = beams[1, :] .* ((360.0 / 24.0) * (pi/180.0))
 			beaminfo.decs = beams[2, :] .* (pi/180.0)
 			beaminfo.src_names = collect(@sprintf("BEAM_%01d", i) for i in 0:diminfo.nbeams-1)
+		end
+		if !isnothing(phase_center)
+			coords = parse.(Float64, split(phase_center, ","))
+			obsinfo.phase_center_ra = coords[1] * ((360.0 / 24.0) * (pi/180.0))
+			obsinfo.phase_center_dec = coords[2] * (pi/180.0)
 		end
 		obs_antnames = collectObsAntnames(header)
 
