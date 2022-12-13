@@ -86,14 +86,17 @@ function bfr5Collect(
 	guppiraw_filepath::String,
 	telinfo_filepath::String;
 	headerentry_limit::Integer=256,
-	headers_only::Bool=false,
+	headers_only::Bool=true,
 	antweights_filepath::Union{String, Nothing}=nothing,
 	beam_coords::Union{Vector{String}, Nothing}=nothing # RAh,DECdeg strings
 )::BeamformerRecipe
 
+	guppiraw_stem_match = match(r"(.*)\.(\d{4})\.raw", guppiraw_filepath)
+	guppiraw_stempath, guppiraw_stem_index = guppiraw_stem_match[1], parse(Int, guppiraw_stem_match[2])
+
 	fio = open(guppiraw_filepath, "r")
 		header = GuppiRaw.Header(headerentry_limit)
-		@assert read!(fio, header, skip_padding=!headers_only)
+		@assert read!(fio, header, skip_padding=headers_only)
 
 		diminfo, beaminfo, obsinfo = collectDimBeamObsInfo(header)
 		if !isnothing(beam_coords) && length(beam_coords) > 0
@@ -115,15 +118,26 @@ function bfr5Collect(
 		push!(delayinfo.time_array, calculateEpochGuppiHeader(header, 0.5))
 		
 		while true 
-			if !headers_only
+			if headers_only
 				skip(fio, header["BLOCSIZE"])
 			end
 			try
-				if ! read!(fio, header, skip_padding=!headers_only)
-					break
+				if ! read!(fio, header, skip_padding=headers_only)
+					guppiraw_stem_index += 1
+					next_guppiraw_filepath = @sprintf("%s.%04d.raw", guppiraw_stempath, guppiraw_stem_index)
+					if !isfile(next_guppiraw_filepath)
+						break
+					end
+
+					close(fio)
+					println("Covering", next_guppiraw_filepath)
+					guppiraw_filepath = next_guppiraw_filepath
+					fio = open(guppiraw_filepath, "r")
+					@assert read!(fio, header, skip_padding=headers_only)
+
 				end
 			catch err
-				println("`read!(..., skip_padding=", skip_padding, ")` error caught at block ", length(delayinfo.time_array), ": ", err)
+				println("`read!(..., skip_padding=", headers_only, ")` error caught at block ", length(delayinfo.time_array), ": ", err)
 				break
 			end
 			push!(delayinfo.time_array, calculateEpochGuppiHeader(header, 0.5))
