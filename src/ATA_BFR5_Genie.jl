@@ -177,6 +177,7 @@ function bfr5Collect(
 	calinfo.cal_G = ones(ComplexF32, (diminfo.nants, diminfo.npol))
 	calinfo.cal_B = antcal_weights
 	calinfo.cal_all = antcal_weights
+	diminfo.nchan = size(antcal_weights)[3]
 
 	fio = open(telinfo_filepath, "r")
 		telinfo = collectTelinfo(TOML.parse(fio), obs_antnames)
