@@ -22,8 +22,19 @@ function collectTelinfo(telinfoDict::Dict, ant_name_filter::Array{String, 1})::T
 	telinfo = TelInfo()
 	default_diameter = get(telinfoDict, "antenna_diameter", 0.0)
 
-	for antinfo in values(telinfoDict["antennas"])
-		if length(ant_name_filter) == 0 || antinfo["name"] in ant_name_filter
+	if length(ant_name_filter) == 0
+		for antinfo in values(telinfoDict["antennas"])
+			push!(telinfo.antenna_names, antinfo["name"])
+			push!(telinfo.antenna_numbers, antinfo["number"])
+			push!(telinfo.antenna_diameters, "diameter" in keys(antinfo) ? antinfo["diameter"] : default_diameter)
+			telinfo.antenna_positions = cat(telinfo.antenna_positions, antinfo["position"], dims=2)
+		end
+	else
+		name_info_map = Dict{String, Any}(
+			map(antinfo -> antinfo["name"] => antinfo, values(telinfoDict["antennas"]))
+		)
+		for antname in ant_name_filter
+			antinfo = name_info_map[antname]
 			push!(telinfo.antenna_names, antinfo["name"])
 			push!(telinfo.antenna_numbers, antinfo["number"])
 			push!(telinfo.antenna_diameters, "diameter" in keys(antinfo) ? antinfo["diameter"] : default_diameter)
