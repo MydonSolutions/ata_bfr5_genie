@@ -1,7 +1,7 @@
 name = "ATA_BFR5_Genie"
 uuid = "2bfb1019-64be-44d9-b456-8c825cf091dc"
 authors = ["RocketRoss <code@radonn.co.za>"]
-version = "0.1.18"
+version = "0.1.19"
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"

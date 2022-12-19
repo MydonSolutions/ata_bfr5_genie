@@ -73,7 +73,11 @@ function collectDimBeamObsInfo(header::GuppiRaw.Header)
 
 	obsinfo = ObsInfo()
 	obsinfo.obsid = header["SRC_NAME"]
-	obsinfo.freq_array = [(header["SCHAN"] + 0.5 + chan)*header["CHAN_BW"] for chan in 0:diminfo.nchan-1]
+
+	# OBSFREQ is the center frequency of the observed data
+	obsinfo.freq_array = [header["OBSFREQ"] - (chan - diminfo.nchan/2)*header["CHAN_BW"] for chan in 0:diminfo.nchan-1]
+	obsinfo.freq_array /= 1e3 # MHz -> GHz
+
 	obsinfo.phase_center_ra = header["RA_STR"] * 360.0 / 24.0 # convert hours to degrees
 	obsinfo.phase_center_dec = header["DEC_STR"]
 	obsinfo.phase_center_ra *= pi/180.0
