@@ -126,7 +126,7 @@ function bfr5Collect(
 
 		delayinfo = DelayInfo()
 		delayinfo.time_array = []
-		delayinfo.dut1 = header["DUT1"]
+		delayinfo.dut1 = get(header, "DUT1", 0.0)
 		
 		push!(delayinfo.time_array, calculateEpochGuppiHeader(header, 0.5))
 		
@@ -143,7 +143,6 @@ function bfr5Collect(
 					end
 
 					close(fio)
-					println("Covering", next_guppiraw_filepath)
 					guppiraw_filepath = next_guppiraw_filepath
 					fio = open(guppiraw_filepath, "r")
 					@assert read!(fio, header, skip_padding=headers_only)
